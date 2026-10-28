@@ -22,8 +22,8 @@ struct Wall walls[MAX_WALLS];
 int num_walls = 0;
 
 // Zustand des Roboters im Raum (Startposition und Blickrichtung)
-float robot_x   = 5.0f;  // X-Position des Roboters (z. B. 5.0 Meter)
-float robot_y   = 5.0f;  // Y-Position des Roboters (z. B. 5.0 Meter)
+float robot_x   = 1.5f;  // X-Position des Roboters (z. B. 5.0 = 500mm)
+float robot_y   = 3.0f;  // Y-Position des Roboters (z. B. 5.0 = 500mm)
 float robot_phi = 1.57f; // Blickwinkel des Roboters in Radian (1.57 rad ca. 90 Grad = nach oben)
 
 /**
@@ -141,7 +141,7 @@ static int save_scan(const char *filename)
     }
 
     // Schleife von 0 bis 89 Grad (1-Grad-Schritte)
-    for (int degrees = 0; degrees < 90; degrees++) {
+    for (int degrees = 45; degrees <= 135; degrees++) {
         // Umrechnung von Grad in Radian (Bogenmass)
         const float phi = (float)degrees * PI / 180.0f;
 
