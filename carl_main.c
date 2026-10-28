@@ -23,7 +23,7 @@ int num_walls = 0;
 
 // Zustand des Roboters im Raum (Startposition und Blickrichtung)
 float robot_x   = 1.5f;  // X-Position des Roboters (z. B. 5.0 = 500mm)
-float robot_y   = 3.0f;  // Y-Position des Roboters (z. B. 5.0 = 500mm)
+float robot_y   = 4.0f;  // Y-Position des Roboters (z. B. 5.0 = 500mm)
 float robot_phi = 1.57f; // Blickwinkel des Roboters in Radian (1.57 rad ca. 90 Grad = nach oben)
 
 /**
@@ -128,40 +128,41 @@ int read_walls(const char *filename)
 /**
  * Tastet die Umgebung schrittweise in Grad ab und speichert die Trefferpunkte in einer Textdatei.
  */
-static int save_scan(const char *filename)
-{
-    // Oeffnet/Erstellt die Datei im Schreib-Modus ("w" steht fuer write)
+static int save_scan(const char *filename) {
     FILE *f = fopen(filename, "w");
-
-    // Prueft, ob die Datei erfolgreich zum Schreiben geoeffnet werden konnte
     if (f == NULL) {
-        // Fehler auf der Konsole ausgeben
         fprintf(stderr, "Error opening file %s\n", filename);
-        return -1; // Bricht ab mit Fehlercode -1
+        return -1;
     }
 
-    // Schleife von 0 bis 89 Grad (1-Grad-Schritte)
-    for (int degrees = 45; degrees <= 135; degrees++) {
-        // Umrechnung von Grad in Radian (Bogenmass)
-        const float phi = (float)degrees * PI / 180.0f;
+    // --- Definition deiner ZWEI Sensoren ---
+    // Der Roboter guckt nach vorne (90 Grad = 1.57 rad). 
+    // Die Sensoren sind schräg nach außen montiert.
+    
+    // 1. Linker Sensor (z.B. +30 Grad nach links von der Mitte)
+    float winkel_links = 120.0f; 
+    const float phi_L = winkel_links * PI / 180.0f;
+    const float dist_L = perception(robot_x, robot_y, phi_L);
 
-        // Gemessene Wand-Entfernung in der Richtung phi abfragen
-        const float d   = perception(robot_x, robot_y, phi);
+    // 2. Rechter Sensor (z.B. -30 Grad nach rechts von der Mitte)
+    float winkel_rechts = 60.0f; 
+    const float phi_R = winkel_rechts * PI / 180.0f;
+    const float dist_R = perception(robot_x, robot_y, phi_R);
 
-        // Prüft, ob der Strahl ins Leere trifft (d ist unendlich)
-        if (isinf(d)) {
-            continue;   // Überspringt den Rest der Schleife und macht mit dem nächsten Grad weiter
-        }
-
-        // Schreib-Befehl: Speichert Roboter-X, Roboter-Y sowie Treffer-X und Treffer-Y in der Datei
+    // --- In Datei speichern (nur wenn Wand getroffen) ---
+    // Linker Strahl
+    if (!isinf(dist_L)) {
         fprintf(f, "%.3f %.3f %.3f %.3f\n", robot_x, robot_y,
-                robot_x + d * cosf(phi), robot_y + d * sinf(phi));
+                robot_x + dist_L * cosf(phi_L), robot_y + dist_L * sinf(phi_L));
+    }
+    
+    // Rechter Strahl
+    if (!isinf(dist_R)) {
+        fprintf(f, "%.3f %.3f %.3f %.3f\n", robot_x, robot_y,
+                robot_x + dist_R * cosf(phi_R), robot_y + dist_R * sinf(phi_R));
     }
 
-    // Schließt die Datei wieder
     fclose(f);
-
-    // Gibt 0 fuer "Erfolgreich abgeschlossen" zurueck
     return 0;
 }
 
